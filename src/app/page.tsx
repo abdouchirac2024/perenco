@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import QRCode from "qrcode";
+import { useState, useRef, useCallback } from "react";
+import { QRCode } from "react-qrcode-logo";
 
 interface EquipmentSpecs {
   site: string;
@@ -37,9 +37,9 @@ const initialSpecs: EquipmentSpecs = {
 
 export default function Home() {
   const [specs, setSpecs] = useState<EquipmentSpecs>(initialSpecs);
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [qrLink, setQrLink] = useState<string>("");
-  const qrRef = useRef<HTMLDivElement>(null);
+  const [showQR, setShowQR] = useState(false);
+  const qrRef = useRef<QRCode>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -47,45 +47,30 @@ export default function Home() {
     setSpecs({ ...specs, [e.target.name]: e.target.value });
   };
 
-  const generateQR = async () => {
+  const generateQR = useCallback(() => {
     if (!specs.site.trim()) {
       alert("Veuillez saisir le site.");
       return;
     }
 
     const data = btoa(encodeURIComponent(JSON.stringify(specs)));
-
     const origin = window.location.origin;
     const url = `${origin}/pc?data=${data}`;
     setQrLink(url);
-
-    try {
-      const dataUrl = await QRCode.toDataURL(url, {
-        width: 400,
-        margin: 2,
-        color: {
-          dark: "#0f172a",
-          light: "#ffffff",
-        },
-      });
-      setQrDataUrl(dataUrl);
-    } catch (err) {
-      console.error(err);
-      alert("Erreur lors de la génération du QR code.");
-    }
-  };
+    setShowQR(true);
+  }, [specs]);
 
   const downloadQR = () => {
-    if (!qrDataUrl) return;
-    const link = document.createElement("a");
-    link.download = `qr-${specs.site.replace(/\s+/g, "_")}-${specs.tag.replace(/\s+/g, "_")}.png`;
-    link.href = qrDataUrl;
-    link.click();
+    if (!qrRef.current) return;
+    (qrRef.current as unknown as { download: (type: string, name: string) => void }).download(
+      "png",
+      `qr-${specs.site.replace(/\s+/g, "_")}-${specs.tag.replace(/\s+/g, "_")}`
+    );
   };
 
   const resetForm = () => {
     setSpecs(initialSpecs);
-    setQrDataUrl(null);
+    setShowQR(false);
     setQrLink("");
   };
 
@@ -105,11 +90,13 @@ export default function Home() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
-          <div className="bg-blue-600 text-white font-bold text-xl px-3 py-1.5 rounded-lg">
-            P
-          </div>
+          <img
+            src="/image/logo.jpeg"
+            alt="Perenco Logo"
+            className="h-10 w-auto rounded"
+          />
           <div>
-            <h1 className="text-xl font-bold text-slate-800">PEREMCO</h1>
+            <h1 className="text-xl font-bold text-slate-800">PERENCO</h1>
             <p className="text-sm text-slate-500">
               Générateur QR Code - Équipements
             </p>
@@ -253,20 +240,31 @@ export default function Home() {
 
           {/* QR Code */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col items-center justify-center">
-            {qrDataUrl ? (
-              <div ref={qrRef} className="text-center space-y-5">
+            {showQR && qrLink ? (
+              <div className="text-center space-y-5">
                 <h2 className="text-lg font-semibold text-slate-800">
                   QR Code généré
                 </h2>
                 <div className="bg-white p-4 rounded-xl border-2 border-dashed border-slate-200 inline-block">
-                  <img
-                    src={qrDataUrl}
-                    alt="QR Code"
-                    className="w-64 h-64 mx-auto"
+                  <QRCode
+                    ref={qrRef}
+                    value={qrLink}
+                    size={280}
+                    quietZone={10}
+                    bgColor="#ffffff"
+                    fgColor="#0f172a"
+                    logoImage="/image/logo.jpeg"
+                    logoWidth={70}
+                    logoHeight={70}
+                    logoOpacity={1}
+                    removeQrCodeBehindLogo={true}
+                    qrStyle="dots"
+                    eyeRadius={8}
+                    ecLevel="H"
                   />
                 </div>
                 <p className="text-sm text-slate-500 font-medium">
-                  {specs.site} - {specs.tag}
+                  {specs.site} {specs.tag && `- ${specs.tag}`}
                 </p>
                 <div className="flex gap-3 justify-center">
                   <button
