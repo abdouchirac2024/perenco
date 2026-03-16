@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { QRCode } from "react-qrcode-logo";
 
 interface EquipmentSpecs {
@@ -39,7 +39,24 @@ export default function Home() {
   const [specs, setSpecs] = useState<EquipmentSpecs>(initialSpecs);
   const [qrLink, setQrLink] = useState<string>("");
   const [showQR, setShowQR] = useState(false);
+  const [logoBase64, setLogoBase64] = useState<string>("");
   const qrRef = useRef<QRCode>(null);
+
+  useEffect(() => {
+    const canvas = document.createElement("canvas");
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        setLogoBase64(canvas.toDataURL("image/png"));
+      }
+    };
+    img.src = "/image/logo.jpeg";
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -253,7 +270,7 @@ export default function Home() {
                     quietZone={10}
                     bgColor="#ffffff"
                     fgColor="#0f172a"
-                    logoImage="/image/logo.jpeg"
+                    logoImage={logoBase64}
                     logoWidth={70}
                     logoHeight={70}
                     logoOpacity={1}
