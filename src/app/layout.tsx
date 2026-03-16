@@ -8,8 +8,8 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "PEREMCO - QR Code PC",
-  description: "Générer des QR codes pour les caractéristiques des ordinateurs",
+  title: "PERENCO - Générateur QR Code Équipements",
+  description: "Générer des QR codes pour les équipements PERENCO",
 };
 
 export default function RootLayout({
