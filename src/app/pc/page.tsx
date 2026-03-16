@@ -3,18 +3,23 @@
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
-interface PcSpecs {
-  titre: string;
-  processeur: string;
-  ram: string;
-  stockage: string;
-  ecran: string;
-  gpu: string;
-  os: string;
-  remarques: string;
+interface EquipmentSpecs {
+  site: string;
+  plateforme: string;
+  equipement: string;
+  tag: string;
+  inletSize: string;
+  inletClasse: string;
+  outletSize: string;
+  outletClasse: string;
+  dateDepose: string;
+  certificatDepose: string;
+  datePose: string;
+  certificatPose: string;
+  commentaires: string;
 }
 
-function PcDetails() {
+function EquipmentDetails() {
   const searchParams = useSearchParams();
   const data = searchParams.get("data");
 
@@ -31,7 +36,7 @@ function PcDetails() {
     );
   }
 
-  let specs: PcSpecs;
+  let specs: EquipmentSpecs;
   try {
     specs = JSON.parse(decodeURIComponent(atob(data)));
   } catch {
@@ -48,12 +53,18 @@ function PcDetails() {
   }
 
   const details: { label: string; value: string }[] = [
-    { label: "Processeur", value: specs.processeur },
-    { label: "RAM", value: specs.ram },
-    { label: "Stockage", value: specs.stockage },
-    { label: "Écran", value: specs.ecran },
-    { label: "Carte graphique", value: specs.gpu },
-    { label: "Système d'exploitation", value: specs.os },
+    { label: "Site", value: specs.site },
+    { label: "Plate-forme", value: specs.plateforme },
+    { label: "Équipement protégé", value: specs.equipement },
+    { label: "Tag de l'équipement", value: specs.tag },
+    { label: "Inlet size", value: specs.inletSize },
+    { label: "Inlet classe", value: specs.inletClasse },
+    { label: "Outlet size", value: specs.outletSize },
+    { label: "Outlet classe", value: specs.outletClasse },
+    { label: "Date de dépose", value: specs.dateDepose },
+    { label: "Certificat de dépose envoyé ?", value: specs.certificatDepose },
+    { label: "Date de pose", value: specs.datePose },
+    { label: "Certificat de pose envoyé ?", value: specs.certificatPose },
   ].filter((d) => d.value);
 
   return (
@@ -73,13 +84,22 @@ function PcDetails() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                 />
               </svg>
             </div>
             <div>
               <p className="text-sm text-blue-100">PEREMCO</p>
-              <h1 className="text-xl font-bold">{specs.titre}</h1>
+              <h1 className="text-xl font-bold">{specs.site}</h1>
+              {specs.tag && (
+                <p className="text-sm text-blue-200">Tag: {specs.tag}</p>
+              )}
             </div>
           </div>
         </div>
@@ -87,7 +107,7 @@ function PcDetails() {
         {/* Specs */}
         <div className="p-6">
           <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">
-            Caractéristiques
+            Informations de l&apos;équipement
           </h2>
           <div className="space-y-3">
             {details.map((detail) => (
@@ -105,12 +125,12 @@ function PcDetails() {
             ))}
           </div>
 
-          {specs.remarques && (
+          {specs.commentaires && (
             <div className="mt-5 p-3 bg-amber-50 border border-amber-200 rounded-lg">
               <p className="text-xs font-semibold text-amber-700 uppercase mb-1">
-                Remarques
+                Commentaires
               </p>
-              <p className="text-sm text-amber-900">{specs.remarques}</p>
+              <p className="text-sm text-amber-900">{specs.commentaires}</p>
             </div>
           )}
         </div>
@@ -135,7 +155,7 @@ export default function PcPage() {
         </div>
       }
     >
-      <PcDetails />
+      <EquipmentDetails />
     </Suspense>
   );
 }

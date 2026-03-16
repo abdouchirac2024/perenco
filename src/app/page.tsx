@@ -3,49 +3,57 @@
 import { useState, useRef } from "react";
 import QRCode from "qrcode";
 
-interface PcSpecs {
-  titre: string;
-  processeur: string;
-  ram: string;
-  stockage: string;
-  ecran: string;
-  gpu: string;
-  os: string;
-  remarques: string;
+interface EquipmentSpecs {
+  site: string;
+  plateforme: string;
+  equipement: string;
+  tag: string;
+  inletSize: string;
+  inletClasse: string;
+  outletSize: string;
+  outletClasse: string;
+  dateDepose: string;
+  certificatDepose: string;
+  datePose: string;
+  certificatPose: string;
+  commentaires: string;
 }
 
-const initialSpecs: PcSpecs = {
-  titre: "",
-  processeur: "",
-  ram: "",
-  stockage: "",
-  ecran: "",
-  gpu: "",
-  os: "",
-  remarques: "",
+const initialSpecs: EquipmentSpecs = {
+  site: "",
+  plateforme: "",
+  equipement: "",
+  tag: "",
+  inletSize: "",
+  inletClasse: "",
+  outletSize: "",
+  outletClasse: "",
+  dateDepose: "",
+  certificatDepose: "",
+  datePose: "",
+  certificatPose: "",
+  commentaires: "",
 };
 
 export default function Home() {
-  const [specs, setSpecs] = useState<PcSpecs>(initialSpecs);
+  const [specs, setSpecs] = useState<EquipmentSpecs>(initialSpecs);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [qrLink, setQrLink] = useState<string>("");
   const qrRef = useRef<HTMLDivElement>(null);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     setSpecs({ ...specs, [e.target.name]: e.target.value });
   };
 
   const generateQR = async () => {
-    if (!specs.titre.trim()) {
-      alert("Veuillez saisir un titre pour l'ordinateur.");
+    if (!specs.site.trim()) {
+      alert("Veuillez saisir le site.");
       return;
     }
 
-    const data = btoa(
-      encodeURIComponent(JSON.stringify(specs))
-    );
+    const data = btoa(encodeURIComponent(JSON.stringify(specs)));
 
     const origin = window.location.origin;
     const url = `${origin}/pc?data=${data}`;
@@ -70,7 +78,7 @@ export default function Home() {
   const downloadQR = () => {
     if (!qrDataUrl) return;
     const link = document.createElement("a");
-    link.download = `qr-${specs.titre.replace(/\s+/g, "_")}.png`;
+    link.download = `qr-${specs.site.replace(/\s+/g, "_")}-${specs.tag.replace(/\s+/g, "_")}.png`;
     link.href = qrDataUrl;
     link.click();
   };
@@ -81,36 +89,16 @@ export default function Home() {
     setQrLink("");
   };
 
-  const fields: { name: keyof PcSpecs; label: string; placeholder: string }[] =
-    [
-      {
-        name: "titre",
-        label: "Titre / Nom du PC",
-        placeholder: "Ex: Dell Latitude 5520",
-      },
-      {
-        name: "processeur",
-        label: "Processeur",
-        placeholder: "Ex: Intel Core i7-1165G7",
-      },
-      { name: "ram", label: "RAM", placeholder: "Ex: 16 Go DDR4" },
-      {
-        name: "stockage",
-        label: "Stockage",
-        placeholder: "Ex: SSD 512 Go NVMe",
-      },
-      { name: "ecran", label: "Écran", placeholder: "Ex: 15.6\" FHD IPS" },
-      {
-        name: "gpu",
-        label: "Carte graphique",
-        placeholder: "Ex: Intel Iris Xe",
-      },
-      {
-        name: "os",
-        label: "Système d'exploitation",
-        placeholder: "Ex: Windows 11 Pro",
-      },
-    ];
+  const textFields: { name: keyof EquipmentSpecs; label: string; placeholder: string }[] = [
+    { name: "site", label: "Site", placeholder: "Ex: Site de Douala" },
+    { name: "plateforme", label: "Plate-forme", placeholder: "Ex: PF-A" },
+    { name: "equipement", label: "Équipement protégé", placeholder: "Ex: Compresseur HP" },
+    { name: "tag", label: "Tag de l'équipement protégé", placeholder: "Ex: TAG-001" },
+    { name: "inletSize", label: "Inlet size", placeholder: "Ex: 2\"" },
+    { name: "inletClasse", label: "Inlet classe", placeholder: "Ex: 150" },
+    { name: "outletSize", label: "Outlet size", placeholder: "Ex: 3\"" },
+    { name: "outletClasse", label: "Outlet classe", placeholder: "Ex: 300" },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -123,7 +111,7 @@ export default function Home() {
           <div>
             <h1 className="text-xl font-bold text-slate-800">PEREMCO</h1>
             <p className="text-sm text-slate-500">
-              Générateur QR Code - Caractéristiques PC
+              Générateur QR Code - Équipements
             </p>
           </div>
         </div>
@@ -134,18 +122,18 @@ export default function Home() {
           {/* Formulaire */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
             <h2 className="text-lg font-semibold text-slate-800 mb-5">
-              Caractéristiques de l&apos;ordinateur
+              Informations de l&apos;équipement
             </h2>
 
             <div className="space-y-4">
-              {fields.map((field) => (
+              {textFields.map((field) => (
                 <div key={field.name}>
                   <label
                     htmlFor={field.name}
                     className="block text-sm font-medium text-slate-700 mb-1"
                   >
                     {field.label}
-                    {field.name === "titre" && (
+                    {field.name === "site" && (
                       <span className="text-red-500 ml-1">*</span>
                     )}
                   </label>
@@ -161,17 +149,84 @@ export default function Home() {
                 </div>
               ))}
 
+              {/* Date de dépose */}
+              <div>
+                <label htmlFor="dateDepose" className="block text-sm font-medium text-slate-700 mb-1">
+                  Date de dépose
+                </label>
+                <input
+                  type="date"
+                  id="dateDepose"
+                  name="dateDepose"
+                  value={specs.dateDepose}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                />
+              </div>
+
+              {/* Certificat de dépose envoyé */}
+              <div>
+                <label htmlFor="certificatDepose" className="block text-sm font-medium text-slate-700 mb-1">
+                  Certificat de dépose envoyé ?
+                </label>
+                <select
+                  id="certificatDepose"
+                  name="certificatDepose"
+                  value={specs.certificatDepose}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                >
+                  <option value="">-- Sélectionner --</option>
+                  <option value="Oui">Oui</option>
+                  <option value="Non">Non</option>
+                </select>
+              </div>
+
+              {/* Date de pose */}
+              <div>
+                <label htmlFor="datePose" className="block text-sm font-medium text-slate-700 mb-1">
+                  Date de pose
+                </label>
+                <input
+                  type="date"
+                  id="datePose"
+                  name="datePose"
+                  value={specs.datePose}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                />
+              </div>
+
+              {/* Certificat de pose envoyé */}
+              <div>
+                <label htmlFor="certificatPose" className="block text-sm font-medium text-slate-700 mb-1">
+                  Certificat de pose envoyé ?
+                </label>
+                <select
+                  id="certificatPose"
+                  name="certificatPose"
+                  value={specs.certificatPose}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                >
+                  <option value="">-- Sélectionner --</option>
+                  <option value="Oui">Oui</option>
+                  <option value="Non">Non</option>
+                </select>
+              </div>
+
+              {/* Commentaires */}
               <div>
                 <label
-                  htmlFor="remarques"
+                  htmlFor="commentaires"
                   className="block text-sm font-medium text-slate-700 mb-1"
                 >
-                  Remarques
+                  Commentaires
                 </label>
                 <textarea
-                  id="remarques"
-                  name="remarques"
-                  value={specs.remarques}
+                  id="commentaires"
+                  name="commentaires"
+                  value={specs.commentaires}
                   onChange={handleChange}
                   placeholder="Notes supplémentaires..."
                   rows={3}
@@ -211,7 +266,7 @@ export default function Home() {
                   />
                 </div>
                 <p className="text-sm text-slate-500 font-medium">
-                  {specs.titre}
+                  {specs.site} - {specs.tag}
                 </p>
                 <div className="flex gap-3 justify-center">
                   <button
