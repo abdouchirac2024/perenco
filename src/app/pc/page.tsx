@@ -12,6 +12,8 @@ interface EquipmentSpecs {
   inletClasse: string;
   outletSize: string;
   outletClasse: string;
+  orifice: string;
+  pressionTarage: string;
   dateDepose: string;
   certificatDepose: string;
   datePose: string;
@@ -21,7 +23,7 @@ interface EquipmentSpecs {
 
 function EquipmentDetails() {
   const searchParams = useSearchParams();
-  const data = searchParams.get("data");
+  const data = searchParams.get("d") || searchParams.get("data");
 
   if (!data) {
     return (
@@ -38,7 +40,19 @@ function EquipmentDetails() {
 
   let specs: EquipmentSpecs;
   try {
-    specs = JSON.parse(decodeURIComponent(atob(data)));
+    const decoded = JSON.parse(decodeURIComponent(escape(atob(data))));
+    if (Array.isArray(decoded)) {
+      const [site, plateforme, equipement, tag, inletSize, inletClasse,
+        outletSize, outletClasse, orifice, pressionTarage,
+        dateDepose, certificatDepose, datePose,
+        certificatPose, commentaires] = decoded;
+      specs = { site, plateforme, equipement, tag, inletSize, inletClasse,
+        outletSize, outletClasse, orifice, pressionTarage,
+        dateDepose, certificatDepose, datePose,
+        certificatPose, commentaires };
+    } else {
+      specs = decoded;
+    }
   } catch {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -56,11 +70,13 @@ function EquipmentDetails() {
     { label: "Site", value: specs.site },
     { label: "Plate-forme", value: specs.plateforme },
     { label: "Équipement protégé", value: specs.equipement },
-    { label: "Tag de l'équipement", value: specs.tag },
+    { label: "Tag de la PSV", value: specs.tag },
     { label: "Inlet size", value: specs.inletSize },
     { label: "Inlet classe", value: specs.inletClasse },
     { label: "Outlet size", value: specs.outletSize },
     { label: "Outlet classe", value: specs.outletClasse },
+    { label: "Orifice", value: specs.orifice },
+    { label: "Pression de tarage", value: specs.pressionTarage },
     { label: "Date de dépose", value: specs.dateDepose },
     { label: "Certificat de dépose envoyé ?", value: specs.certificatDepose },
     { label: "Date de pose", value: specs.datePose },
@@ -95,7 +111,7 @@ function EquipmentDetails() {
               </svg>
             </div>
             <div>
-              <p className="text-sm text-blue-100">PEREMCO</p>
+              <p className="text-sm text-blue-100">PERENCO</p>
               <h1 className="text-xl font-bold">{specs.site}</h1>
               {specs.tag && (
                 <p className="text-sm text-blue-200">Tag: {specs.tag}</p>
@@ -138,7 +154,7 @@ function EquipmentDetails() {
         {/* Footer */}
         <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 text-center">
           <p className="text-xs text-slate-400">
-            Généré par PEREMCO
+            Généré par PERENCO
           </p>
         </div>
       </div>

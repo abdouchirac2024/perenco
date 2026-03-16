@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import { QRCode } from "react-qrcode-logo";
 
 interface EquipmentSpecs {
@@ -12,6 +12,8 @@ interface EquipmentSpecs {
   inletClasse: string;
   outletSize: string;
   outletClasse: string;
+  orifice: string;
+  pressionTarage: string;
   dateDepose: string;
   certificatDepose: string;
   datePose: string;
@@ -28,6 +30,8 @@ const initialSpecs: EquipmentSpecs = {
   inletClasse: "",
   outletSize: "",
   outletClasse: "",
+  orifice: "",
+  pressionTarage: "",
   dateDepose: "",
   certificatDepose: "",
   datePose: "",
@@ -39,24 +43,7 @@ export default function Home() {
   const [specs, setSpecs] = useState<EquipmentSpecs>(initialSpecs);
   const [qrLink, setQrLink] = useState<string>("");
   const [showQR, setShowQR] = useState(false);
-  const [logoBase64, setLogoBase64] = useState<string>("");
   const qrRef = useRef<QRCode>(null);
-
-  useEffect(() => {
-    const canvas = document.createElement("canvas");
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        ctx.drawImage(img, 0, 0);
-        setLogoBase64(canvas.toDataURL("image/png"));
-      }
-    };
-    img.src = "/image/logo.jpeg";
-  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -70,9 +57,17 @@ export default function Home() {
       return;
     }
 
-    const data = btoa(encodeURIComponent(JSON.stringify(specs)));
+    // Encode with short keys to keep URL small for QR code
+    const compact = [
+      specs.site, specs.plateforme, specs.equipement, specs.tag,
+      specs.inletSize, specs.inletClasse, specs.outletSize, specs.outletClasse,
+      specs.orifice, specs.pressionTarage,
+      specs.dateDepose, specs.certificatDepose, specs.datePose, specs.certificatPose,
+      specs.commentaires,
+    ];
+    const data = btoa(unescape(encodeURIComponent(JSON.stringify(compact))));
     const origin = window.location.origin;
-    const url = `${origin}/pc?data=${data}`;
+    const url = `${origin}/pc?d=${data}`;
     setQrLink(url);
     setShowQR(true);
   }, [specs]);
@@ -95,11 +90,13 @@ export default function Home() {
     { name: "site", label: "Site", placeholder: "Ex: Site de Douala" },
     { name: "plateforme", label: "Plate-forme", placeholder: "Ex: PF-A" },
     { name: "equipement", label: "Équipement protégé", placeholder: "Ex: Compresseur HP" },
-    { name: "tag", label: "Tag de l'équipement protégé", placeholder: "Ex: TAG-001" },
+    { name: "tag", label: "Tag de la PSV", placeholder: "Ex: PSV-1201A" },
     { name: "inletSize", label: "Inlet size", placeholder: "Ex: 2\"" },
     { name: "inletClasse", label: "Inlet classe", placeholder: "Ex: 150" },
     { name: "outletSize", label: "Outlet size", placeholder: "Ex: 3\"" },
     { name: "outletClasse", label: "Outlet classe", placeholder: "Ex: 300" },
+    { name: "orifice", label: "Orifice", placeholder: "Ex: D" },
+    { name: "pressionTarage", label: "Pression de tarage", placeholder: "Ex: 45 bar" },
   ];
 
   return (
@@ -270,11 +267,6 @@ export default function Home() {
                     quietZone={10}
                     bgColor="#ffffff"
                     fgColor="#0f172a"
-                    logoImage={logoBase64}
-                    logoWidth={70}
-                    logoHeight={70}
-                    logoOpacity={1}
-                    removeQrCodeBehindLogo={true}
                     qrStyle="dots"
                     eyeRadius={8}
                     ecLevel="H"
